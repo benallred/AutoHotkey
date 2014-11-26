@@ -149,148 +149,141 @@ return
 	}
 	else
 	{
-		allDescriptions := "To do:`n"
+		Gui, AutoToDo:New
 		for i, item in todo
 		{
-			allDescriptions := allDescriptions . "`n" . item.Description
+			Gui, Add, Text, v%i%Description x10, % item.Description
+			Gui, Add, Button, v%i% yp-5 x150, % "   Go   "
 		}
-		TrayTip, Ben.ahk AutoToDo, % allDescriptions
-		for i, item in todo
+
+		Gui, Show, , AutoToDo
+		WinGetPos, , , guiWidth, guiHeight, A
+		SysGet, primaryMonitor, MonitorWorkArea
+		SysGet, borderWidth, 32 ; SM_CXSIZEFRAME
+		SysGet, borderHeight, 33 ; SM_CYSIZEFRAME
+		WinMove, A, , primaryMonitorRight - guiWidth - borderWidth, primaryMonitorBottom - guiHeight - borderHeight
+	}
+return
+
+ButtonGo:
+	item := todo[A_GuiControl]
+	status := item.Description " (" item.Minutes " min)" ; `n`nExecuted commands:`n"
+	for j, command in item.Commands
+	{
+		if IsObject(command)
 		{
-			MsgBox, 3, Ben.ahk AutoToDo, % item.Description " (" item.Minutes " minutes)"
-			IfMsgBox, Cancel
+			status := status . "`n`t"
+			if (command.Sleep != "")
 			{
-				break
+				status := status " S:" command.Sleep
+				sleep, command.Sleep
+				WinWait, A
 			}
-			else IfMsgBox, No
+			if (command.WaitWinTitle != "")
 			{
-				continue
+				status := status " W"
+				WinWait, % command.WaitWinTitle
 			}
-			else IfMsgBox, Yes
+			if (command.Monitor != "")
 			{
-				status := item.Description " (" item.Minutes " min)" ; `n`nExecuted commands:`n"
-				for j, command in item.Commands
+				SysGet, mon, MonitorWorkArea, % command.Monitor
+				status := status " M:" command.Monitor
+			}
+			else
+			{
+				SysGet, mon, MonitorWorkArea, 1
+			}
+			monWidth  := monRight  - monLeft
+			monHeight := monBottom - monTop
+			if command.State != ""
+			{
+				status := status " " command.State
+				if (command.State = "restore")
 				{
-					if IsObject(command)
-					{
-						status := status . "`n`t"
-						if (command.Sleep != "")
-						{
-							status := status " S:" command.Sleep
-							sleep, command.Sleep
-							WinWait, A
-						}
-						if (command.WaitWinTitle != "")
-						{
-							status := status " W"
-							WinWait, % command.WaitWinTitle
-						}
-						if (command.Monitor != "")
-						{
-							SysGet, mon, MonitorWorkArea, % command.Monitor
-							status := status " M:" command.Monitor
-						}
-						else
-						{
-							SysGet, mon, MonitorWorkArea, 1
-						}
-						monWidth  := monRight  - monLeft
-						monHeight := monBottom - monTop
-						if command.State != ""
-						{
-							status := status " " command.State
-							if (command.State = "restore")
-							{
-								WinRestore
-							}
-							else if (command.State = "min")
-							{
-								WinMinimize
-							}
-							else if (command.State = "max")
-							{
-								WinMaximize
-							}
-						}
-						WinGetPos, lastRunX, lastRunY, lastRunWidth, lastRunHeight
-						if command.Left != ""
-						{
-							if (command.Left = "center")
-							{
-								newX := monLeft + (monWidth / 2 - lastRunWidth / 2)
-							}
-							else
-							{
-								newX := monLeft + command.Left
-							}
-							status := status . " L:" . command.Left
-						}
-						else if command.Right != ""
-						{
-							newX := monRight - lastRunWidth - command.Right
-							status := status . " R:" . command.Right
-						}
-						else
-						{
-							newX := lastRunX
-						}
-						if command.Top != ""
-						{
-							if (command.Top = "center")
-							{
-								newY := monTop + (monHeight / 2 - lastRunHeight / 2)
-							}
-							else
-							{
-								newY := monTop + command.Top
-							}
-							status := status . " T:" . command.Top
-						}
-						else if command.Bottom != ""
-						{
-							newY :=  monBottom - lastRunHeight - command.Bottom
-							status := status . " B:" . command.Bottom
-						}
-						else
-						{
-							newY := lastRunY
-						}
-						WinMove, newX, newY
-					}
-					else if command is digit
-					{
-						status := status "`n`tS:" command
-						sleep, command
-					}
-					else
-					{
-						startSubStr := StrLen(command) - 200 / item.Commands.MaxIndex()
-						status := status "`n`t" SubStr(command, startSubStr > 0 ? startSubStr : 1)
-						run, % command, , , lastRunPID
-;						if lastRunPID
-;						{
-;							WinWait, ahk_pid %lastRunPID%
-;						}
-;						else
-;						{
-							sleep, 1000
-							WinWait, A
-;						}
-					}
+					WinRestore
 				}
-;				status := status "`nSleeping for " item.Minutes " minutes"
-				TrayTip, Ben.ahk AutoToDo, % status
-				sleep, item.Minutes * 60*1000
-				if (i < todo.MaxIndex())
+				else if (command.State = "min")
 				{
-					SplashTextOn, 500, 500, Ben.ahk AutoToDo, `n`n`n`n`n`n`n`n`n`n`n`nMsgBox about to appear
-					WinActivate, Ben.ahk AutoToDo
-					sleep 5000
-					SplashTextOff
+					WinMinimize
+				}
+				else if (command.State = "max")
+				{
+					WinMaximize
 				}
 			}
+			WinGetPos, lastRunX, lastRunY, lastRunWidth, lastRunHeight
+			if command.Left != ""
+			{
+				if (command.Left = "center")
+				{
+					newX := monLeft + (monWidth / 2 - lastRunWidth / 2)
+				}
+				else
+				{
+					newX := monLeft + command.Left
+				}
+				status := status . " L:" . command.Left
+			}
+			else if command.Right != ""
+			{
+				newX := monRight - lastRunWidth - command.Right
+				status := status . " R:" . command.Right
+			}
+			else
+			{
+				newX := lastRunX
+			}
+			if command.Top != ""
+			{
+				if (command.Top = "center")
+				{
+					newY := monTop + (monHeight / 2 - lastRunHeight / 2)
+				}
+				else
+				{
+					newY := monTop + command.Top
+				}
+				status := status . " T:" . command.Top
+			}
+			else if command.Bottom != ""
+			{
+				newY :=  monBottom - lastRunHeight - command.Bottom
+				status := status . " B:" . command.Bottom
+			}
+			else
+			{
+				newY := lastRunY
+			}
+			WinMove, newX, newY
 		}
-		TrayTip, Ben.ahk AutoToDo, All done
+		else if command is digit
+		{
+			status := status "`n`tS:" command
+			sleep, command
+		}
+		else
+		{
+			startSubStr := StrLen(command) - 200 / item.Commands.MaxIndex()
+			status := status "`n`t" SubStr(command, startSubStr > 0 ? startSubStr : 1)
+			run, % command, , , lastRunPID
+			sleep, 1000
+			WinWait, A
+		}
+	}
+	TrayTip, Ben.ahk AutoToDo, % status
+	GuiControl, Hide, % A_GuiControl
+;	GuiControl, Hide, % A_GuiControl "Description"
+;	Gui, Show, AutoSize
+	descriptionClosure_%A_GuiControl% := item.Description " (" item.Minutes " min)"
+	sleep, item.Minutes * 10*1000
+	if (descriptionClosure_%A_GuiControl% = item.Description " (" item.Minutes " min)")
+	{
+		MsgBox, , Ben.ahk AutoToDo, % "Allotted time completed for """ descriptionClosure_%A_GuiControl% """"
+		Loop 20
+		{
+			Gui, Flash
+			Sleep, 500
+		}
 	}
 return
 
