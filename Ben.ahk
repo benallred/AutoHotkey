@@ -278,12 +278,12 @@ AutoToDoButtonGo:
 	sleep, item.Minutes * 60*1000
 	if (descriptionClosure_%A_GuiControl% = item.Description " (" item.Minutes " min)")
 	{
-		MsgBox, , Ben.ahk AutoToDo, % "Allotted time completed for """ descriptionClosure_%A_GuiControl% """"
 		Loop 20
 		{
 			Gui, Flash
 			Sleep, 500
 		}
+		MsgBox, , Ben.ahk AutoToDo, % "Allotted time completed for """ descriptionClosure_%A_GuiControl% """"
 	}
 return
 
