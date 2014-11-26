@@ -64,6 +64,8 @@ return
 ;	IfMsgBox, Yes, Edit
 	return
 
+#^+p::Run, powershell ; Opens Powershell in the current working directory (AutoHotkey script location)
+
 #^+s::
 	Suspend, Toggle
 	if A_IsSuspended = 1
