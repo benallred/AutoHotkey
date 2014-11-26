@@ -165,7 +165,7 @@ return
 	}
 return
 
-ButtonGo:
+AutoToDoButtonGo:
 	item := todo[A_GuiControl]
 	status := item.Description " (" item.Minutes " min)" ; `n`nExecuted commands:`n"
 	for j, command in item.Commands
