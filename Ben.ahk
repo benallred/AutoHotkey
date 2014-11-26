@@ -275,7 +275,7 @@ AutoToDoButtonGo:
 ;	GuiControl, Hide, % A_GuiControl "Description"
 ;	Gui, Show, AutoSize
 	descriptionClosure_%A_GuiControl% := item.Description " (" item.Minutes " min)"
-	sleep, item.Minutes * 10*1000
+	sleep, item.Minutes * 60*1000
 	if (descriptionClosure_%A_GuiControl% = item.Description " (" item.Minutes " min)")
 	{
 		MsgBox, , Ben.ahk AutoToDo, % "Allotted time completed for """ descriptionClosure_%A_GuiControl% """"
