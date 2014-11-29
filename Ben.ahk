@@ -154,8 +154,9 @@ return
 		Gui, AutoToDo:New
 		for i, item in todo
 		{
-			Gui, Add, Text, v%i%Description x10, % item.Description
-			Gui, Add, Button, v%i% yp-5 x150, % "   Go   "
+			Gui, Add, Text, v%i%_Description x10, % item.Description
+			Gui, Add, Button, v%i%_Go yp-5 x150, % "   Go   "
+			Gui, Add, Button, v%i%_Skip xp50, % "  Skip  "
 		}
 
 		Gui, Show, , AutoToDo
@@ -168,7 +169,8 @@ return
 return
 
 AutoToDoButtonGo:
-	item := todo[A_GuiControl]
+	AutoToDoButtonGo_i := StrSplit(A_GuiControl, "_")[1]
+	item := todo[AutoToDoButtonGo_i]
 	status := item.Description " (" item.Minutes " min)" ; `n`nExecuted commands:`n"
 	for j, command in item.Commands
 	{
@@ -273,20 +275,26 @@ AutoToDoButtonGo:
 		}
 	}
 	TrayTip, Ben.ahk AutoToDo, % status
-	GuiControl, Hide, % A_GuiControl
-;	GuiControl, Hide, % A_GuiControl "Description"
+	GuiControl, Hide, % AutoToDoButtonGo_i "_Go"
+	GuiControl, Hide, % AutoToDoButtonGo_i "_Skip"
+;	GuiControl, Hide, % AutoToDoButtonGo_i "_Description"
 ;	Gui, Show, AutoSize
-	descriptionClosure_%A_GuiControl% := item.Description " (" item.Minutes " min)"
-	sleep, item.Minutes * 60*1000
-	if (descriptionClosure_%A_GuiControl% = item.Description " (" item.Minutes " min)")
+	Sleep, item.Minutes * 60*1000
+	if (AutoToDoButtonGo_i = StrSplit(A_GuiControl, "_")[1])
 	{
-		Loop 20
+		Loop, 20
 		{
-			Gui, Flash
+			Gui, AutoToDo: Flash
 			Sleep, 500
 		}
-		MsgBox, , Ben.ahk AutoToDo, % "Allotted time completed for """ descriptionClosure_%A_GuiControl% """"
+		MsgBox, , Ben.ahk AutoToDo, % "Allotted time completed for """ item.Description " (" item.Minutes " min)"""
 	}
+return
+
+AutoToDoButtonSkip:
+	i := StrSplit(A_GuiControl, "_")[1]
+	GuiControl, Hide, % i "_Go"
+	GuiControl, Hide, % i "_Skip"
 return
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
