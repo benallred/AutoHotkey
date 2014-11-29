@@ -160,11 +160,7 @@ return
 		}
 
 		Gui, Show, , AutoToDo
-		WinGetPos, , , guiWidth, guiHeight, A
-		SysGet, primaryMonitor, MonitorWorkArea
-		SysGet, borderWidth, 32 ; SM_CXSIZEFRAME
-		SysGet, borderHeight, 33 ; SM_CYSIZEFRAME
-		WinMove, A, , primaryMonitorRight - guiWidth - borderWidth, primaryMonitorBottom - guiHeight - borderHeight
+		AutoToDo_PositionGui()
 	}
 return
 
@@ -275,10 +271,7 @@ AutoToDoButtonGo:
 		}
 	}
 	TrayTip, Ben.ahk AutoToDo, % status
-	GuiControl, Hide, % AutoToDoButtonGo_i "_Go"
-	GuiControl, Hide, % AutoToDoButtonGo_i "_Skip"
-;	GuiControl, Hide, % AutoToDoButtonGo_i "_Description"
-;	Gui, Show, AutoSize
+	AutoToDo_HideItem(AutoToDoButtonGo_i)
 	Sleep, item.Minutes * 60*1000
 	if (AutoToDoButtonGo_i = StrSplit(A_GuiControl, "_")[1])
 	{
@@ -292,10 +285,61 @@ AutoToDoButtonGo:
 return
 
 AutoToDoButtonSkip:
-	i := StrSplit(A_GuiControl, "_")[1]
-	GuiControl, Hide, % i "_Go"
-	GuiControl, Hide, % i "_Skip"
+	AutoToDo_HideItem(StrSplit(A_GuiControl, "_")[1])
 return
+
+AutoToDo_HideItem(i)
+{
+	AutoToDo_HideItem_i := i
+	noItemsVisible := 1
+	global todo
+	for i in todo
+	{
+		GuiControlGet, itemVisible, Visible, %i%_Description
+		if itemVisible
+		{
+			GuiControlGet, currentDescription, Pos, %i%_Description
+			GuiControlGet, currentGo, Pos, %i%_Go
+			GuiControlGet, currentSkip, Pos, %i%_Skip
+
+			if (i > AutoToDo_HideItem_i)
+			{
+				GuiControl, Move, %i%_Description, % "y" lastVisibleDescriptionY
+				GuiControl, Move, %i%_Go, % "y" lastVisibleGoY
+				GuiControl, Move, %i%_Skip, % "y" lastVisibleSkipY
+			}
+
+			lastVisibleDescriptionY := currentDescriptionY
+			lastVisibleGoY := currentGoY
+			lastVisibleSkipY := currentSkipY
+
+			noItemsVisible := noItemsVisible && (i = AutoToDo_HideItem_i)
+		}
+	}
+
+	GuiControl, Hide, % AutoToDo_HideItem_i "_Go"
+	GuiControl, Hide, % AutoToDo_HideItem_i "_Skip"
+	GuiControl, Hide, % AutoToDo_HideItem_i "_Description"
+
+	if noItemsVisible
+	{
+		Gui, AutoToDo: Destroy
+	}
+	else
+	{
+		Gui, Show, AutoSize
+		AutoToDo_PositionGui()
+	}
+}
+
+AutoToDo_PositionGui()
+{
+	WinGetPos, , , AutoToDo_PositionGui_guiWidth, AutoToDo_PositionGui_guiHeight, A
+	SysGet, AutoToDo_PositionGui_primaryMonitor, MonitorWorkArea
+	SysGet, AutoToDo_PositionGui_borderWidth, 32 ; SM_CXSIZEFRAME
+	SysGet, AutoToDo_PositionGui_borderHeight, 33 ; SM_CYSIZEFRAME
+	WinMove, A, , AutoToDo_PositionGui_primaryMonitorRight - AutoToDo_PositionGui_guiWidth - AutoToDo_PositionGui_borderWidth, AutoToDo_PositionGui_primaryMonitorBottom - AutoToDo_PositionGui_guiHeight - AutoToDo_PositionGui_borderHeight
+}
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; OneNote
